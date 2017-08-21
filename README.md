@@ -6,13 +6,13 @@ Kubernetes resolver based on [endpoint API](https://kubernetes.io/docs/api-refer
 Inspired by https://github.com/sercand/kuberesolver but more suitable for our needs.
 
 Features:
- [*] K8s resolver that watches [endpoint API](https://kubernetes.io/docs/api-reference/v1.7/#endpoints-v1-core)
- [*] Different types of auth for kube-apiserver access. (You can run it easily from your local machine as well!)
- [*] URL in common kube-DNS format: `<service>.<namespace>(|.<any suffix>):<port|port name>`
+* [x] K8s resolver that watches [endpoint API](https://kubernetes.io/docs/api-reference/v1.7/#endpoints-v1-core)
+* [x] Different types of auth for kube-apiserver access. (You can run it easily from your local machine as well!)
+* [x] URL in common kube-DNS format: `<service>.<namespace>(|.<any suffix>):<port|port name>`
  
 Still todo:
- [ ] Metrics
- [ ] Fallback to SRV (?)
+* [ ] Metrics
+* [ ] Fallback to SRV (?)
  
 ## Usage 
 
