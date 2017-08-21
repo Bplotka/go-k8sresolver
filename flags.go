@@ -25,7 +25,7 @@ var (
 		"TCP address to Kube API server in a form of 'http(s)://host:value'. If empty it will be fetched from env variables:"+
 			"KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT")
 	fInsecureSkipVerify = FlagSet.Bool("k8sresolver_tls_insecure", false, "If enabled, no server verification will be "+
-		"performed on client side. Not recommented.")
+		"performed on client side. Not recommended.")
 	fKubeApiRootCAPath = FlagSet.String("k8sresolver_ca_file", defaultSACACert, "Path to service account CA file. "+
 		"Required if kubeapi_tls_insecure = false.")
 
