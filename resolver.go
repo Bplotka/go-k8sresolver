@@ -30,7 +30,7 @@ type resolver struct {
 }
 
 // New returns a new Kubernetes resolver with HTTP client (based on given tokenauth Source and tlsConfig) to be used against kube-apiserver.
-func New(k8sURL string, source tokenauth.Source, tlsConfig *tls.Config) *resolver {
+func New(k8sURL string, source tokenauth.Source, tlsConfig *tls.Config) naming.Resolver {
 	k8sClient := &http.Client{
 		// TLS transport with auth injection.
 		Transport: httpauth.NewTripper(
@@ -45,7 +45,7 @@ func New(k8sURL string, source tokenauth.Source, tlsConfig *tls.Config) *resolve
 }
 
 // NewWithClient returns a new Kubernetes resolver using given http.Client configured to be used against kube-apiserver.
-func NewWithClient(k8sURL string, k8sClient *http.Client) *resolver {
+func NewWithClient(k8sURL string, k8sClient *http.Client) naming.Resolver {
 	return &resolver{
 		cl: &client{
 			k8sURL:    k8sURL,

@@ -14,6 +14,7 @@ import (
 	"github.com/Bplotka/go-tokenauth/sources/k8s"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"google.golang.org/grpc/naming"
 )
 
 var (
@@ -23,12 +24,12 @@ var (
 	FlagSet = pflag.NewFlagSet("k8sresolver", pflag.ExitOnError)
 
 	defaultKubeURL = fmt.Sprintf("https://%s", net.JoinHostPort(os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")))
-	fKubeApiURL    = FlagSet.String("k8sresolver_kubeapi_url", defaultKubeURL,
+	fKubeAPIURL    = FlagSet.String("k8sresolver_kubeapi_url", defaultKubeURL,
 		"TCP address to Kube API server in a form of 'http(s)://host:value'. If empty it will be fetched from env variables:"+
 			"KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT")
 	fInsecureSkipVerify = FlagSet.Bool("k8sresolver_tls_insecure", false, "If enabled, no server verification will be "+
 		"performed on client side. Not recommended.")
-	fKubeApiRootCAPath = FlagSet.String("k8sresolver_ca_file", defaultSACACert, "Path to service account CA file. "+
+	fKubeAPIRootCAPath = FlagSet.String("k8sresolver_ca_file", defaultSACACert, "Path to service account CA file. "+
 		"Required if kubeapi_tls_insecure = false.")
 
 	// Different kinds of auth are supported. Currently supported with flags:
@@ -45,8 +46,8 @@ var (
 )
 
 // NewFromFlags creates resolver from flag from k8sresolver.FlagSet.
-func NewFromFlags() (*resolver, error) {
-	k8sURL := *fKubeApiURL
+func NewFromFlags() (naming.Resolver, error) {
+	k8sURL := *fKubeAPIURL
 	if k8sURL == "" || k8sURL == "https://:" {
 		return nil, errors.Errorf(
 			"k8sresolver: k8sresolver_kubeapi_url flag needs to be specified or " +
@@ -61,9 +62,9 @@ func NewFromFlags() (*resolver, error) {
 		InsecureSkipVerify: true,
 	}
 	if !*fInsecureSkipVerify {
-		ca, err := ioutil.ReadFile(*fKubeApiRootCAPath)
+		ca, err := ioutil.ReadFile(*fKubeAPIRootCAPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "k8sresolver: failed to parse RootCA from file %s", *fKubeApiRootCAPath)
+			return nil, errors.Wrapf(err, "k8sresolver: failed to parse RootCA from file %s", *fKubeAPIRootCAPath)
 		}
 		certPool := x509.NewCertPool()
 		certPool.AppendCertsFromPEM(ca)

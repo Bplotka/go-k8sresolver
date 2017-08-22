@@ -17,7 +17,7 @@ func TestParseTarget(t *testing.T) {
 	}{
 		{
 			target:      "",
-			expectedErr: errors.New("Failed to parse targetEntry. Empty string."),
+			expectedErr: errors.New("Failed to parse targetEntry. Empty string"),
 		},
 		{
 			target:      "http://service1",

@@ -110,7 +110,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 
 type endpoints struct {
 	Kind       string   `json:"kind"`
-	ApiVersion string   `json:"apiVersion"`
+	APIVersion string   `json:"apiVersion"`
 	Metadata   metadata `json:"metadata"`
 	Subsets    []subset `json:"subsets"`
 }
