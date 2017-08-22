@@ -3,16 +3,17 @@ package k8sresolver
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"strconv"
 	"time"
 
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type streamWatcher struct {
+	logger                  logrus.FieldLogger
 	target                  targetEntry
 	epClient                endpointClient
 	eventsCh                chan<- watchResult
@@ -22,6 +23,7 @@ type streamWatcher struct {
 
 func startWatchingEndpointsChanges(
 	ctx context.Context,
+	logger logrus.FieldLogger,
 	target targetEntry,
 	epClient endpointClient,
 	eventsCh chan<- watchResult,
@@ -29,6 +31,7 @@ func startWatchingEndpointsChanges(
 	lastSeenResourceVersion int,
 ) *streamWatcher {
 	w := &streamWatcher{
+		logger:                  logger,
 		target:                  target,
 		epClient:                epClient,
 		eventsCh:                eventsCh,
@@ -62,7 +65,7 @@ func (w *streamWatcher) watch(ctx context.Context) {
 	for ctx.Err() == nil {
 		stream, err := w.epClient.StartChangeStream(ctx, w.target, w.lastSeenResourceVersion)
 		if err != nil {
-			fmt.Println(errors.Wrap(err, "k8sresolver stream: Failed to do start stream"))
+			w.logger.WithError(err).Error("k8sresolver stream: Failed to do start stream")
 			time.Sleep(w.retryBackoff.Duration())
 
 			// TODO(bplotka): On X retry on failed, consider returning failed to Next() via watchResult that we
@@ -76,7 +79,7 @@ func (w *streamWatcher) watch(ctx context.Context) {
 		}
 
 		if err != nil {
-			fmt.Println(errors.Wrap(err, "k8sresolver stream: Error on read and proxy Events. Retrying"))
+			w.logger.WithError(err).Error("k8sresolver stream: Error on read and proxy Events. Retrying")
 		}
 	}
 }

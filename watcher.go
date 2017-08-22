@@ -9,6 +9,7 @@ import (
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/naming"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -35,7 +36,7 @@ type watcher struct {
 	lastUpdates map[string]struct{}
 }
 
-func startNewWatcher(target targetEntry, epClient endpointClient) *watcher {
+func startNewWatcher(logger logrus.FieldLogger, target targetEntry, epClient endpointClient) *watcher {
 	// NOTE(bplotka): Would love to have proper context from above but naming.Resolver does not allow that.
 	ctx, cancel := context.WithCancel(context.Background())
 	w := &watcher{
@@ -46,7 +47,7 @@ func startNewWatcher(target targetEntry, epClient endpointClient) *watcher {
 		lastUpdates: make(map[string]struct{}),
 	}
 
-	go startWatchingEndpointsChanges(ctx, target, epClient, w.watchChange, watchRetryBackoff, 0)
+	go startWatchingEndpointsChanges(ctx, logger, target, epClient, w.watchChange, watchRetryBackoff, 0)
 	return w
 }
 

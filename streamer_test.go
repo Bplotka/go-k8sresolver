@@ -10,6 +10,7 @@ import (
 
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,6 +84,7 @@ func TestStreamWatcher(t *testing.T) {
 
 	startWatchingEndpointsChanges(
 		streamWatcherCtx,
+		logrus.New(),
 		testTarget,
 		epClientMock,
 		eventsCh,
