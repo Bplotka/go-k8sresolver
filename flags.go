@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/url"
 	"os"
 
 	"github.com/Bplotka/go-tokenauth"
@@ -52,6 +53,10 @@ func NewFromFlags() (*resolver, error) {
 				"KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined")
 	}
 
+	_, err := url.Parse(k8sURL)
+	if err != nil {
+		return nil, errors.Wrapf(err, "k8sresolver: k8sresolver_kubeapi_url flag needs to be valid URL. Value %s ", k8sURL)
+	}
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -68,7 +73,6 @@ func NewFromFlags() (*resolver, error) {
 		}
 	}
 
-	var err error
 	var source tokenauth.Source
 
 	// Try kubeconfig auth first.
