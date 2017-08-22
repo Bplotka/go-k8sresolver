@@ -62,7 +62,7 @@ func (w *streamWatcher) watch(ctx context.Context) {
 	for ctx.Err() == nil {
 		stream, err := w.epClient.StartChangeStream(ctx, w.target, w.lastSeenResourceVersion)
 		if err != nil {
-			fmt.Println(errors.Wrap(err, "k8sresolver stream: Failed to do start stream."))
+			fmt.Println(errors.Wrap(err, "k8sresolver stream: Failed to do start stream"))
 			time.Sleep(w.retryBackoff.Duration())
 
 			// TODO(bplotka): On X retry on failed, consider returning failed to Next() via watchResult that we
@@ -76,7 +76,7 @@ func (w *streamWatcher) watch(ctx context.Context) {
 		}
 
 		if err != nil {
-			fmt.Println(errors.Wrap(err, "k8sresolver stream: Error on read and proxy Events. Retrying..."))
+			fmt.Println(errors.Wrap(err, "k8sresolver stream: Error on read and proxy Events. Retrying"))
 		}
 	}
 }

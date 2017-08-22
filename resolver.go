@@ -70,7 +70,7 @@ type targetEntry struct {
 // parseTarget understands 'ExpectedTargetFmt'.
 func parseTarget(targetName string) (targetEntry, error) {
 	if targetName == "" {
-		return targetEntry{}, errors.New("Failed to parse targetEntry. Empty string.")
+		return targetEntry{}, errors.New("Failed to parse targetEntry. Empty string")
 	}
 
 	if hasSchema(targetName) {

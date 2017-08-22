@@ -136,7 +136,7 @@ type port struct {
 
 func subsetToAddresses(t targetEntry, sub subset) ([]string, error) {
 	if len(sub.Ports) == 0 {
-		return []string(nil), errors.Errorf("Retrieved subset update contains no port.")
+		return []string(nil), errors.Errorf("Retrieved subset update contains no port")
 	}
 
 	var port string

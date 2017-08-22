@@ -55,17 +55,17 @@ func (c *client) StartSingleUnary(ctx context.Context, t targetEntry, resourceVe
 func (c *client) startGET(ctx context.Context, url string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed to create new GET request %s", url)
 	}
 
 	resp, err := c.k8sClient.Do(req.WithContext(ctx))
 	if err != nil {
-		return nil, errors.Wrapf(err, "k8sresolver: Failed to do GET %s request", url)
+		return nil, errors.Wrapf(err, "Failed to do GET %s request", url)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
-		return nil, errors.Errorf("k8sresolver: Invalid response code %d on GET %s request", resp.StatusCode, url)
+		return nil, errors.Errorf("Invalid response code %d on GET %s request", resp.StatusCode, url)
 	}
 
 	return resp.Body, nil

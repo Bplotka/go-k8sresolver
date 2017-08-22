@@ -3,6 +3,7 @@ package k8sresolver
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
@@ -20,8 +21,8 @@ var (
 	// NOTE: Default values for all flags are designed for running within k8s pod.
 	FlagSet = pflag.NewFlagSet("k8sresolver", pflag.ExitOnError)
 
-	fKubeApiURL = FlagSet.String("k8sresolver_kubeapi_url",
-		net.JoinHostPort(os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")),
+	defaultKubeURL = fmt.Sprintf("https://%s", net.JoinHostPort(os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")))
+	fKubeApiURL    = FlagSet.String("k8sresolver_kubeapi_url", defaultKubeURL,
 		"TCP address to Kube API server in a form of 'http(s)://host:value'. If empty it will be fetched from env variables:"+
 			"KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT")
 	fInsecureSkipVerify = FlagSet.Bool("k8sresolver_tls_insecure", false, "If enabled, no server verification will be "+
@@ -45,7 +46,7 @@ var (
 // NewFromFlags creates resolver from flag from k8sresolver.FlagSet.
 func NewFromFlags() (*resolver, error) {
 	k8sURL := *fKubeApiURL
-	if k8sURL == "" || k8sURL == ":" {
+	if k8sURL == "" || k8sURL == "https://:" {
 		return nil, errors.Errorf(
 			"k8sresolver: k8sresolver_kubeapi_url flag needs to be specified or " +
 				"KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined")
@@ -74,7 +75,7 @@ func NewFromFlags() (*resolver, error) {
 	if user := *fKubeConfigAuthUser; user != "" {
 		source, err = k8sauth.New("kube_api", *fKubeConfigAuthPath, user)
 		if err != nil {
-			return nil, errors.Wrap(err, "k8sresolver: failed to create k8sauth Source.")
+			return nil, errors.Wrap(err, "k8sresolver: failed to create k8sauth Source")
 		}
 	}
 
@@ -82,7 +83,7 @@ func NewFromFlags() (*resolver, error) {
 		// Try token auth as fallback.
 		token, err := ioutil.ReadFile(*fTokenAuthPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "k8sresolver: failed to parse token from %s. No auth method found.", *fTokenAuthPath)
+			return nil, errors.Wrapf(err, "k8sresolver: failed to parse token from %s. No auth method found", *fTokenAuthPath)
 		}
 		source = directauth.New("kube_api", string(token))
 	}
