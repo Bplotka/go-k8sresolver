@@ -17,6 +17,7 @@ import (
 type readerCloserMock struct {
 	Ctx      context.Context
 	BytesCh  <-chan []byte
+	ErrCh    <-chan error
 	IsClosed atomic.Value
 }
 
@@ -27,6 +28,8 @@ func (m *readerCloserMock) Read(p []byte) (n int, err error) {
 	case chunk := <-m.BytesCh:
 		n = copy(p, chunk)
 		return n, nil
+	case err := <-m.ErrCh:
+		return 0, err
 	}
 }
 
@@ -57,12 +60,14 @@ func (m *endpointClientMock) StartSingleUnary(ctx context.Context, t targetEntry
 
 func TestStreamWatcher(t *testing.T) {
 	bytesCh := make(chan []byte)
+	errCh := make(chan error)
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
 	connMock := &readerCloserMock{
 		Ctx:     ctx,
 		BytesCh: bytesCh,
+		ErrCh: errCh,
 	}
 
 	testTarget := targetEntry{
@@ -94,6 +99,8 @@ func TestStreamWatcher(t *testing.T) {
 
 	localReconnectCounter := uint(1)
 
+	// Call number 1 - triggering error while decoding
+
 	// It should block on connMock.Read by now.
 	// Send some undecodable stuff:
 	bytesCh <- []byte(`{{{{ "temp-err": true}`)
@@ -103,6 +110,8 @@ func TestStreamWatcher(t *testing.T) {
 
 	// This error should recreate stream
 	localReconnectCounter++
+
+	// Call number 2 - triggering not supported event.
 
 	wrongEvent := event{
 		Type: "not-supported",
@@ -114,6 +123,22 @@ func TestStreamWatcher(t *testing.T) {
 	eventCh = <-eventsCh
 	require.Error(t, eventCh.err, "we expect it invalid event type error")
 	require.Nil(t, eventCh.ep)
+
+	// Call number 3 - triggering EOF.
+
+	errCh <- io.EOF
+	// Just expect reconnect.
+	select {
+		case <-eventsCh:
+			t.Error("No event was expected")
+		// Not really nice to use time in tests, but should be enough for now.
+		case <-time.After(200 * time.Millisecond):
+	}
+
+	// This error should recreate stream
+	localReconnectCounter++
+
+	// Call number 4 - triggering OK event.
 
 	expectedEvent := event{
 		Type: added,
