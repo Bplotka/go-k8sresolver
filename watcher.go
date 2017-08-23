@@ -8,8 +8,8 @@ import (
 
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc/naming"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc/naming"
 )
 
 var (
@@ -132,7 +132,7 @@ type address struct {
 
 type port struct {
 	Name string `json:"name"`
-	Port int    `json:"value"`
+	Port int    `json:"port"`
 }
 
 func subsetToAddresses(t targetEntry, sub subset) ([]string, error) {
