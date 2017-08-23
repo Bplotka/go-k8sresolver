@@ -59,7 +59,6 @@ type event struct {
 
 // watch starts a stream and reads connection for every change event. If connection is broken (and ctx is still valid)
 // it retries the stream. We read connection from separate go routine because read is blocking with no timeout/cancel logic.
-// TODO(bplotka): Ugly method, refactor.
 func (w *streamWatcher) watch(ctx context.Context) {
 	// Retry stream loop.
 	for ctx.Err() == nil {
