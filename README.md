@@ -19,7 +19,7 @@ Still todo:
 See [example](example/main.go) 
 
 ```go
-resolver, err := k8sresolver.NewFromFlags(nil)
+resolver, err := k8sresolver.NewFromFlags()
 if err != nil {
     // handle err.
 }

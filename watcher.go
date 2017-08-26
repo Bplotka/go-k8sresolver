@@ -8,14 +8,15 @@ import (
 
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/naming"
 )
 
 var (
 	watchRetryBackoff = &backoff.Backoff{
-		Min: 20 * time.Millisecond,
-		Max: 3 * time.Second,
+		Min:    20 * time.Millisecond,
+		Jitter: true,
+		Factor: 2,
+		Max:    3 * time.Second,
 	}
 )
 
@@ -36,7 +37,7 @@ type watcher struct {
 	lastUpdates map[string]struct{}
 }
 
-func startNewWatcher(logger logrus.FieldLogger, target targetEntry, epClient endpointClient) *watcher {
+func startNewWatcher(target targetEntry, epClient endpointClient) (*watcher, error) {
 	// NOTE(bplotka): Would love to have proper context from above but naming.Resolver does not allow that.
 	ctx, cancel := context.WithCancel(context.Background())
 	w := &watcher{
@@ -47,8 +48,11 @@ func startNewWatcher(logger logrus.FieldLogger, target targetEntry, epClient end
 		lastUpdates: make(map[string]struct{}),
 	}
 
-	go startWatchingEndpointsChanges(ctx, logger, target, epClient, w.watchChange, watchRetryBackoff, 0)
-	return w
+	err := startWatchingEndpointsChanges(ctx, target, epClient, w.watchChange)
+	if err != nil {
+		return nil, err
+	}
+	return w, nil
 }
 
 // Close closes the watcher, cleaning up any open connections.
@@ -57,12 +61,22 @@ func (w *watcher) Close() {
 }
 
 // Next updates the endpoints for the targetEntry being watched.
+// As from Watcher interface: It should return an error if and only if Watcher cannot recover.
 func (w *watcher) Next() ([]*naming.Update, error) {
 	if w.ctx.Err() != nil {
 		// We already stopped.
-		return []*naming.Update(nil), w.ctx.Err()
+		return []*naming.Update(nil), errors.Wrap(w.ctx.Err(), "watcher.Next already stopped or Next returned error already. "+
+			"Note that watcher errors are not recoverable.")
 	}
+	u, err := w.next()
+	if err != nil {
+		// Just in case.
+		w.Close()
+	}
+	return u, err
+}
 
+func (w *watcher) next() ([]*naming.Update, error) {
 	updates := make([]*naming.Update, 0)
 	updatedEndpoints := make(map[string]struct{})
 	var event event
@@ -72,7 +86,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 		return []*naming.Update(nil), w.ctx.Err()
 	case r := <-w.watchChange:
 		if r.err != nil {
-			return []*naming.Update(nil), r.err
+			return []*naming.Update(nil), errors.Wrap(r.err, "error on reading event stream")
 		}
 		event = *r.ep
 	}
@@ -81,7 +95,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 	for _, subset := range event.Object.Subsets {
 		updatedAddresses, err := subsetToAddresses(w.target, subset)
 		if err != nil {
-			return []*naming.Update(nil), err
+			return []*naming.Update(nil), errors.Wrap(err, "failed to convert k8s endpoint subset to update Addr")
 		}
 
 		for _, address := range updatedAddresses {
@@ -113,7 +127,12 @@ type endpoints struct {
 	Kind       string   `json:"kind"`
 	APIVersion string   `json:"apiVersion"`
 	Metadata   metadata `json:"metadata"`
-	Subsets    []subset `json:"subsets"`
+	// If kins: Endpoints
+	Subsets []subset `json:"subsets"`
+	// If kind: Status
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Code    int    `json:"code"`
 }
 
 type metadata struct {

@@ -13,7 +13,6 @@ import (
 	"github.com/Bplotka/go-tokenauth/sources/direct"
 	"github.com/Bplotka/go-tokenauth/sources/k8s"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"google.golang.org/grpc/naming"
 )
@@ -47,7 +46,7 @@ var (
 )
 
 // NewFromFlags creates resolver from flag from k8sresolver.FlagSet.
-func NewFromFlags(logger logrus.FieldLogger) (naming.Resolver, error) {
+func NewFromFlags() (naming.Resolver, error) {
 	k8sURL := *fKubeAPIURL
 	if k8sURL == "" || k8sURL == "https://:" {
 		return nil, errors.Errorf(
@@ -94,5 +93,5 @@ func NewFromFlags(logger logrus.FieldLogger) (naming.Resolver, error) {
 		source = directauth.New("kube_api", string(token))
 	}
 
-	return New(logger, k8sURL, source, tlsConfig), nil
+	return New(k8sURL, source, tlsConfig), nil
 }

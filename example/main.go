@@ -24,7 +24,7 @@ func main() {
 
 	target := os.Args[1]
 
-	resolver, err := k8sresolver.NewFromFlags(logger)
+	resolver, err := k8sresolver.NewFromFlags()
 	if err != nil {
 		logger.WithError(err).Fatal("Failed to create new resolver from flags")
 	}
