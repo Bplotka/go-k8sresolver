@@ -1,5 +1,10 @@
+
+# NOTE
+
+This project was moved and incorporated by [kedge](https://github.com/improbable-eng/kedge) project and is maintained here: https://github.com/improbable-eng/kedge/tree/master/pkg/resolvers/k8s
+Please feel free to add issue to this project if you would like to have standalone library instead for this useful feature.
+
 # k8sresolver
-[![Build Status](https://travis-ci.org/Bplotka/go-k8sresolver.svg?branch=master)](https://travis-ci.org/Bplotka/go-k8sresolver) [![Go Report Card](https://goreportcard.com/badge/github.com/Bplotka/go-k8sresolver)](https://goreportcard.com/report/github.com/Bplotka/go-k8sresolver)
 
 Kubernetes resolver based on [endpoint API](https://kubernetes.io/docs/api-reference/v1.7/#endpoints-v1-core)
 
